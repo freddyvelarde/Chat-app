@@ -27,7 +27,7 @@ export const logIn = async (req: Request, res: Response) => {
     });
 
     if (!userData) {
-      res.status(404).json({ message: "User not found" });
+      res.status(404).json({ message: "User not found", isAuth: false });
       return;
     }
 
@@ -37,13 +37,17 @@ export const logIn = async (req: Request, res: Response) => {
     );
 
     if (!passwordValidate) {
-      res.status(401).json({ message: "Your password is incorrect" });
+      res
+        .status(401)
+        .json({ message: "Your password is incorrect", isAuth: false });
       return;
     }
 
     const token = generateToken({ userId: userData.id });
 
-    res.status(200).json({ message: "Login successful", userData, token });
+    res
+      .status(200)
+      .json({ message: "Login successful", userData, token, isAuth: true });
   } catch (error) {
     res.status(500).json({ message: "An error occurred" });
   }

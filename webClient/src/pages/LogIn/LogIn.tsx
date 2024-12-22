@@ -1,5 +1,6 @@
-import { ChangeEvent, SyntheticEvent, useState } from "react";
+import { ChangeEvent, SyntheticEvent, useEffect, useState } from "react";
 import { logInUser } from "../../config/endpoints";
+import useAuth from "../../hooks/useAuth";
 
 interface IForm {
   username: string;
@@ -9,6 +10,7 @@ interface IForm {
 const LogIn = () => {
   const [form, setForm] = useState<IForm>({ username: "", password: "" });
   const [response, setResponse] = useState<any>(null);
+  const { authUser } = useAuth();
 
   const createNewUser = async ({ username, password }: IForm) => {
     const req = await fetch(logInUser, {
@@ -32,8 +34,13 @@ const LogIn = () => {
   const handleFormEvent = (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     createNewUser(form);
-    console.log(response);
   };
+
+  useEffect(() => {
+    if (response && response.isAuth && response.token) {
+      authUser(response.token);
+    }
+  }, [response]);
 
   return (
     <form action="" onSubmit={handleFormEvent}>

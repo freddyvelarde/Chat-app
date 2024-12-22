@@ -116,6 +116,7 @@ describe("Auth Controller", () => {
         message: "Login successful",
         userData: mockUser,
         token: "mock-token",
+        isAuth: true,
       });
     });
 
@@ -131,6 +132,7 @@ describe("Auth Controller", () => {
       expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({
         message: "User not found",
+        isAuth: false,
       });
     });
 
@@ -147,6 +149,7 @@ describe("Auth Controller", () => {
       expect(mockResponse.status).toHaveBeenCalledWith(401);
       expect(mockResponse.json).toHaveBeenCalledWith({
         message: "Your password is incorrect",
+        isAuth: false,
       });
     });
 
