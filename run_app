@@ -1,0 +1,46 @@
+#!/bin/bash
+
+case "${1}" in
+  --up)
+    echo "Running Docker (Postgres):"
+    docker compose -f ~/coding/docker-containers/postgres/docker-compose.yml up -d &
+
+    echo "Running Express Server:"
+    cd ./server || exit
+    pnpm run dev & 
+
+    echo "Running React Client:"
+    cd ../webClient || exit
+    pnpm run dev &
+
+    wait
+    echo "All services are running in the background."
+    ;;
+  --down)
+
+  echo "Stopping Docker (Postgres):"
+  docker compose -f ~/coding/docker-containers/postgres/docker-compose.yml down
+
+  echo "Stopping Express Server:"
+  express_pid=$(pgrep -f "pnpm run dev" | head -n 1)
+  if [ -n "$express_pid" ]; then
+    kill "$express_pid"
+    echo "Express server stopped (PID: $express_pid)."
+  else
+    echo "Express server is not running."
+  fi
+
+  echo "Stopping React Client:"
+  react_pid=$(pgrep -f "pnpm run dev" | tail -n 1)
+  if [ -n "$react_pid" ]; then
+    kill "$react_pid"
+    echo "React client stopped (PID: $react_pid)."
+  else
+    echo "React client is not running."
+  fi
+
+  echo "All services have been stopped."
+
+  ;;
+esac
+
