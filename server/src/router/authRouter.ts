@@ -1,9 +1,20 @@
-import { Router, Request, Response } from "express";
+import { verifyToken } from "../utils/jwt";
+import { createNewUser, logIn } from "../controllers/authControllers";
+import { Router } from "express";
 
 const router: Router = Router();
 
-router.get("/", (_req: Request, res: Response) => {
-  res.send("<h1>Auth router</h1>");
+router.post("/signup", createNewUser);
+router.post("/login", logIn);
+
+router.get("/:token", (req, res) => {
+  const { token } = req.params;
+
+  if (verifyToken(token)) {
+    res.send({ message: "token valid :D" });
+  } else {
+    res.send({ message: "token invalid :(" });
+  }
 });
 
 export default router;
