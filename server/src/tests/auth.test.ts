@@ -134,7 +134,7 @@ describe("Auth Controller", () => {
         "password123",
         "hashedpassword",
       );
-      expect(generateToken).toHaveBeenCalledWith({ userId: 1 });
+      expect(generateToken).toHaveBeenCalledWith(1);
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         message: "Login successful",

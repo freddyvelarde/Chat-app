@@ -48,7 +48,7 @@ export const logIn = async (req: Request, res: Response) => {
       return;
     }
 
-    const token = generateToken({ userId: userData.id });
+    const token = generateToken(userData.id);
 
     res
       .status(200)

@@ -1,12 +1,9 @@
-import { Router, Request, Response } from "express";
-import prisma from "../db/prisma";
-import { protectRoute } from "../middleware/authMiddleware";
+import { Router } from "express";
+import { protectRoute } from "../middleware/verifyToken";
+import { getAllUsers } from "../controllers/userControllers";
 
 const router: Router = Router();
 
-router.get("/", protectRoute, async (_req: Request, res: Response) => {
-  const users = await prisma.user.findMany();
-  res.send(users);
-});
+router.get("/", protectRoute, getAllUsers);
 
 export default router;

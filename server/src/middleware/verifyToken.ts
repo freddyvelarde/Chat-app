@@ -17,7 +17,7 @@ export const protectRoute = (
 
   try {
     const decoded = verifyToken(token);
-    (req as any).id = decoded;
+    (req as any).id = (decoded as any).id;
     next();
   } catch (error) {
     res.status(401).json({ message: "Unauthorized: Invalid token" });
