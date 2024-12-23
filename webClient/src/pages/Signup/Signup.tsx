@@ -1,19 +1,24 @@
-import { ChangeEvent, SyntheticEvent, useEffect, useState } from "react";
-import { logInUser } from "../../config/endpoints";
-import useAuth from "../../hooks/useAuth";
+import { ChangeEvent, SyntheticEvent, useState } from "react";
+import { signup } from "../../config/endpoints";
+// import useAuth from "../../hooks/useAuth";
 
 interface IForm {
   username: string;
   password: string;
+  repeatPassword: string;
 }
 
-const LogIn = () => {
-  const [form, setForm] = useState<IForm>({ username: "", password: "" });
+const Signup = () => {
+  const [form, setForm] = useState<IForm>({
+    username: "",
+    password: "",
+    repeatPassword: "",
+  });
   const [response, setResponse] = useState<any>(null);
-  const { authUser } = useAuth();
+  // const { authUser } = useAuth();
 
-  const loginUser = async ({ username, password }: IForm) => {
-    const req = await fetch(logInUser, {
+  const createNewUser = async ({ username, password }: IForm) => {
+    const req = await fetch(signup, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -30,20 +35,31 @@ const LogIn = () => {
   const handleOnChangeEventPassword = (e: ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, password: e.target.value });
   };
+  const handleOnChangeEventRepeatPassword = (
+    e: ChangeEvent<HTMLInputElement>,
+  ) => {
+    setForm({ ...form, repeatPassword: e.target.value });
+  };
 
   const handleFormEvent = (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    loginUser(form);
+    if (form.password !== form.repeatPassword) {
+      console.log("Your password doesn't match");
+      return;
+    }
+    console.log(form);
+
+    createNewUser(form);
   };
 
-  useEffect(() => {
-    if (response && response.isAuth && response.token) {
-      authUser(response.token);
-    }
-  }, [response]);
+  // useEffect(() => {
+  //   if (response && response.isAuth) {
+  //     authUser(response.token);
+  //   }
+  // }, [response]);
 
   return (
-    <form action="" onSubmit={handleFormEvent}>
+    <form onSubmit={handleFormEvent}>
       <div>
         <label htmlFor="">Username:</label>
         <input
@@ -64,10 +80,20 @@ const LogIn = () => {
           autoComplete="off"
         />
       </div>
-      <button>Log In</button>
+      <div>
+        <label htmlFor="">Repeat Password:</label>
+        <input
+          type="password"
+          onChange={handleOnChangeEventRepeatPassword}
+          value={form.repeatPassword}
+          placeholder="Type your password"
+          autoComplete="off"
+        />
+      </div>
+      <button>Create</button>
       <p>{response ? response.message : null}</p>
     </form>
   );
 };
 
-export default LogIn;
+export default Signup;

@@ -5,17 +5,22 @@ import { generateToken } from "../utils/jwt";
 
 export const createNewUser = async (req: Request, res: Response) => {
   const { username, password } = req.body;
+  const user = await prisma.user.findFirst({ where: { username } });
+  if (user) {
+    res.send({ message: "Username already used.", isAuth: false });
+    return;
+  }
 
   const passwordHashed = await hashPassword(password);
 
-  const user = await prisma.user.create({
+  const userCreated = await prisma.user.create({
     data: {
       username,
       password: passwordHashed,
     },
   });
 
-  res.send({ message: "Creating new user", user });
+  res.send({ message: "Creating new user", user: userCreated, isAuth: true });
 };
 
 export const logIn = async (req: Request, res: Response) => {

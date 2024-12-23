@@ -65,6 +65,7 @@ describe("Auth Controller", () => {
       });
       expect(mockResponse.send).toHaveBeenCalledWith({
         message: "Creating new user",
+        isAuth: true,
         user: mockUser,
       });
     });
@@ -82,6 +83,29 @@ describe("Auth Controller", () => {
       await expect(
         createNewUser(mockRequest as Request, mockResponse as Response),
       ).rejects.toThrow("Database error");
+    });
+
+    it("User already exists", async () => {
+      mockRequest.body = {
+        username: "testuser",
+        password: "password123",
+      };
+
+      (prisma.user.findFirst as jest.Mock).mockResolvedValue({
+        id: 1,
+        username: "testuser",
+        password: "existinghashedpassword",
+      });
+
+      await createNewUser(mockRequest as Request, mockResponse as Response);
+
+      expect(hashPassword).not.toHaveBeenCalled();
+      expect(prisma.user.create).not.toHaveBeenCalled();
+
+      expect(mockResponse.send).toHaveBeenCalledWith({
+        message: "Username already used.",
+        isAuth: false,
+      });
     });
   });
 
