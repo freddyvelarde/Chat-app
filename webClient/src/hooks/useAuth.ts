@@ -18,7 +18,7 @@ const useAuth = () => {
   const clearAuthUser = () => {
     dispatch(setAuthValue({ isAuth: false, token: "" }));
   };
-  return { authUser, isAuth: auth.isAuth, clearAuthUser };
+  return { authUser, isAuth: auth.isAuth, clearAuthUser, token: auth.token };
 };
 
 export default useAuth;
