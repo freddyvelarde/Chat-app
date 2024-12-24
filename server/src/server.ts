@@ -3,6 +3,7 @@ import logger from "morgan";
 import cors from "cors";
 import userRouter from "./router/usersRouter";
 import authRouter from "./router/authRouter";
+import conversationRouter from "./router/conversationRouter";
 import { PORT } from "./config/environment_variables";
 
 // configuration
@@ -16,6 +17,7 @@ app.use(cors());
 // routers
 app.use("/api/user", userRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/conversation", conversationRouter);
 
 export { PORT };
 export default app;
