@@ -52,9 +52,22 @@ describe("Conversation Controller", () => {
 
   describe("getAllMessagesByConversationId", () => {
     it("should return messages for valid conversation ID", async () => {
+      const mockUser1 = {
+        id: "user1",
+        username: "fakeuser",
+        password: "fakePasswrd",
+        createdAt: new Date(),
+      };
+      const mockUser2 = {
+        id: "user2",
+        username: "fakeuser2",
+        password: "fakePasswrd2",
+        createdAt: new Date(),
+      };
+
       const mockMessages = [
-        { id: "1", content: "Hello", senderId: "user1" },
-        { id: "2", content: "Hi", senderId: "user2" },
+        { id: "1", content: "Hello", senderId: "user1", sender: mockUser1 },
+        { id: "2", content: "Hi", senderId: "user2", sender: mockUser2 },
       ];
 
       mockRequest = { params: { conversationId: "conv123" } };
@@ -69,6 +82,9 @@ describe("Conversation Controller", () => {
       expect(prisma.message.findMany).toHaveBeenCalledWith({
         where: { conversationId: "conv123" },
         orderBy: { sentAt: "asc" },
+        include: {
+          sender: true,
+        },
       });
       expect(statusMock).not.toHaveBeenCalled();
       expect(sendMock).toHaveBeenCalledWith(mockMessages);
