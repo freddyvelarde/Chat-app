@@ -44,6 +44,9 @@ export const getAllMessagesByConversationId = async (
     const messages = await prisma.message.findMany({
       where: { conversationId },
       orderBy: { sentAt: "asc" },
+      include: {
+        sender: true,
+      },
     });
 
     res.send(messages);
