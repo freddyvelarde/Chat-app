@@ -8,6 +8,7 @@ import {
   useState,
 } from "react";
 import useAuth from "../../hooks/useAuth";
+import { useSocket } from "../../hooks/useSocket";
 
 interface IMessage {
   content: string;
@@ -36,6 +37,7 @@ const ChatRoom = () => {
   const { token } = useAuth();
   const [response, setResponse] = useState<IMessage[]>([]);
   const [message, setMessage] = useState<string>("");
+  const { sendMessageRealTime } = useSocket();
 
   const getConversation = async () => {
     const req = await fetch(`${allConversationsByUser}/${chatId}`, {
@@ -78,6 +80,7 @@ const ChatRoom = () => {
     e.preventDefault();
 
     handleSendMessage();
+    sendMessageRealTime(message, chatId as string);
     setMessage("");
     console.log(response);
   };

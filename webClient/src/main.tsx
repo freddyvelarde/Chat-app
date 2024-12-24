@@ -2,11 +2,10 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import { RouterProvider } from "react-router-dom";
-// import router from "./routers";
-// import App from "./Home.tsx";
 import { Provider } from "react-redux";
 import { store } from "./redux/store";
 import useRouter from "./routers";
+import { MODE } from "./config/env_variable";
 
 const App = () => {
   const { router } = useRouter();
@@ -14,10 +13,19 @@ const App = () => {
   return <RouterProvider router={router} />;
 };
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
+if (MODE == "development") {
+  createRoot(document.getElementById("root")!).render(
     <Provider store={store}>
       <App />
-    </Provider>
-  </StrictMode>,
-);
+    </Provider>,
+  );
+} else {
+  createRoot(document.getElementById("root")!).render(
+    <StrictMode>
+      <Provider store={store}>
+        <App />
+      </Provider>
+      ,
+    </StrictMode>,
+  );
+}

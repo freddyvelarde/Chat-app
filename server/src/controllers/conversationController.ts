@@ -1,11 +1,13 @@
 import { Request, Response } from "express";
 import prisma from "../db/prisma";
+import { io } from "../socket/socket";
 
 export const getAllConversations = async (req: Request, res: Response) => {
   const userId = (req as any).id;
 
   if (!userId) {
-    return res.status(400).send({ message: "User ID is required" });
+    res.status(400).send({ message: "User ID is required" });
+    return;
   }
 
   try {
@@ -21,9 +23,9 @@ export const getAllConversations = async (req: Request, res: Response) => {
       where: { id: { in: conversationIds } },
     });
 
-    return res.send(conversations); // Ensure no extra wrapping
+    res.send(conversations); // Ensure no extra wrapping
   } catch (error) {
-    return res.status(500).send({ message: "Internal Server Error" });
+    res.status(500).send({ message: "Internal Server Error" });
   }
 };
 
@@ -91,37 +93,6 @@ export const getAllConversationsByUser = async (
   }
 };
 
-// export const getAllConversationsByUser = async (
-//   req: Request,
-//   res: Response,
-// ) => {
-//   try {
-//     const userId = (req as any).id;
-//
-//     const userConversations = await prisma.conversationMembers.findMany({
-//       where: { userId },
-//     });
-//
-//     let conversations: any = [];
-//
-//     for (let i = 0; i < userConversations.length; i++) {
-//       const con = await prisma.conversation.findMany({
-//         where: {
-//           id: userConversations[i].conversationId,
-//         },
-//       });
-//       conversations.push(con);
-//     }
-//
-//     res.send(conversations);
-//   } catch (error) {
-//     res.send({
-//       message:
-//         "There was an error in conversationController.ts:getAllConversationsByUser()",
-//       error,
-//     });
-//   }
-// };
 interface IConversation {
   id: string;
   createdAt: Date;
@@ -138,6 +109,8 @@ export const sendMessage = async (req: Request, res: Response) => {
         senderId: userId,
       },
     });
+    // io.emit("messageReceived", newMessage);
+    io.emit("messageReceived", { newMessage, conversationId });
 
     res.send({ newMessage });
   } catch (error) {
