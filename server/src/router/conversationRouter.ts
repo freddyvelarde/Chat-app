@@ -2,6 +2,7 @@ import { Router } from "express";
 import { protectRoute } from "../middleware/verifyToken";
 import {
   createConversation,
+  deleteConversationBewteenUsers,
   getAllConversationsByUser,
   getAllMessagesByConversationId,
   sendMessage,
@@ -19,5 +20,6 @@ routes.post("/sendFirst/:username", protectRoute, sendMessageFirstMessage);
 routes.post("/send", protectRoute, sendMessage);
 
 routes.get("/create/:username", protectRoute, createConversation);
+routes.delete("/:conversationId", protectRoute, deleteConversationBewteenUsers);
 
 export default routes;

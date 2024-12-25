@@ -23,7 +23,7 @@ export const getAllConversations = async (req: Request, res: Response) => {
       where: { id: { in: conversationIds } },
     });
 
-    res.send(conversations); // Ensure no extra wrapping
+    res.send(conversations);
   } catch (error) {
     res.status(500).send({ message: "Internal Server Error" });
   }
@@ -263,4 +263,28 @@ export const sendMessageFirstMessage = async (req: Request, res: Response) => {
       message: "There was an error in conversationController.ts:sendMessage()",
     });
   }
+};
+
+export const deleteConversationBewteenUsers = async (
+  req: Request,
+  res: Response,
+) => {
+  const { conversationId } = req.params;
+  await prisma.message.deleteMany({
+    where: {
+      conversationId,
+    },
+  });
+  await prisma.conversationMembers.deleteMany({
+    where: {
+      id: conversationId,
+    },
+  });
+  await prisma.conversation.deleteMany({
+    where: {
+      id: conversationId,
+    },
+  });
+
+  res.send({ message: `All messages from: ${conversationId} was deleted` });
 };

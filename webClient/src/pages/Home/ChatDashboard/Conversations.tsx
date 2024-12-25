@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import { allConversationsByUser } from "../../../config/endpoints";
+import {
+  allConversationsByUser,
+  deleteConversation,
+} from "../../../config/endpoints";
 import useAuth from "../../../hooks/useAuth";
 import { IUser } from "../../../interfaces/user";
 import useConversationId from "../../../hooks/useConversationId";
@@ -14,6 +17,15 @@ const Conversations = () => {
   const { token } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>();
   const { setConversationId } = useConversationId();
+
+  const fetchDeleteConversation = async (conversationId: string) => {
+    await fetch(`${deleteConversation}/${conversationId}`, {
+      method: "DELETE",
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+    });
+  };
 
   const fetchAllConversations = async () => {
     try {
@@ -49,6 +61,7 @@ const Conversations = () => {
         {conversations && conversations?.length > 0 ? (
           conversations?.map((conv, index) => (
             <div key={index}>
+              <hr />
               <li
                 onClick={() => {
                   setConversationId(conv.conversationId);
@@ -56,6 +69,11 @@ const Conversations = () => {
               >
                 {conv.user?.username}
               </li>
+              <button
+                onClick={() => fetchDeleteConversation(conv.conversationId)}
+              >
+                delete conversation
+              </button>
             </div>
           ))
         ) : (
