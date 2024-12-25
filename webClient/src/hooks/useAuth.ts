@@ -10,7 +10,6 @@ const useAuth = () => {
 
   useEffect(() => {
     localStorage.setItem("auth", JSON.stringify(auth));
-    console.log(`auth: ${auth}`);
   }, [auth]);
 
   const authUser = (token: string, user: IUser) => {

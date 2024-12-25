@@ -45,7 +45,6 @@ export const notifyNewMessageToUser = (userId: string, newMessage: any) => {
   const receiverSocketId = getChatSocketId(userId);
   if (receiverSocketId) {
     io.to(receiverSocketId).emit("newMessage", newMessage);
-    console.log(`newMessage to: ${receiverSocketId}: `, newMessage.content);
   } else {
     console.log(`User with ${userId} is not online.`);
   }

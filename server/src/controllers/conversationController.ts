@@ -45,6 +45,7 @@ export const getAllMessagesByConversationId = async (
     const messages = await prisma.message.findMany({
       where: { conversationId },
       orderBy: { sentAt: "asc" },
+      // take: 20,
       include: {
         sender: true,
       },
@@ -79,11 +80,6 @@ export const getAllConversationsByUser = async (
       (member) => member.conversationId,
     );
 
-    // const conversations = await prisma.conversation.findMany({
-    //   where: { id: { in: conversationIds } },
-    // });
-
-    // const flattenedConversations = conversations.flat();
     const conversations = await prisma.conversationMembers.findMany({
       where: {
         AND: {
@@ -164,6 +160,7 @@ export const createConversation = async (req: Request, res: Response) => {
       res.send({ error: `user: '${username}' does not exist` });
       return;
     }
+
     const conversationMembersByUser = await prisma.conversationMembers.findMany(
       { where: { userId } },
     );
