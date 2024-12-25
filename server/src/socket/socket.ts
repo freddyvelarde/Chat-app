@@ -2,7 +2,7 @@ import express, { Application } from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import { BASE_URL } from "../config/environment_variables";
-import { IMessage } from "../interfaces/model.db.ts";
+// import { IMessage } from "../interfaces/model.db.ts";
 
 export const app: Application = express();
 
@@ -41,10 +41,7 @@ io.on("connection", (socket) => {
   });
 });
 
-export const notifyNewMessageToUser = (
-  userId: string,
-  newMessage: IMessage,
-) => {
+export const notifyNewMessageToUser = (userId: string, newMessage: any) => {
   const receiverSocketId = getChatSocketId(userId);
   if (receiverSocketId) {
     io.to(receiverSocketId).emit("newMessage", newMessage);

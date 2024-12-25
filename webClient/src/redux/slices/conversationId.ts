@@ -2,18 +2,12 @@ import { createSlice } from "@reduxjs/toolkit";
 
 interface InitialState {
   value: string;
-  // value: {
-  //   id: string;
-  // };
 }
 
 export const conversationIdSlice = createSlice({
-  name: "auth",
+  name: "conversationId",
   initialState: {
     value: "",
-    // value: {
-    //   id: "",
-    // },
   } as InitialState,
   reducers: {
     setConversationIdValue: (state, actions) => {

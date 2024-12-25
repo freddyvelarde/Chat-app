@@ -2,53 +2,57 @@ import { ChangeEvent, SyntheticEvent, useState } from "react";
 import { sendMessage } from "../../../config/endpoints";
 import useAuth from "../../../hooks/useAuth";
 import useConversationId from "../../../hooks/useConversationId";
+import useNewMessage from "../../../hooks/useNewMessage";
 // import { useSocket } from "../../../hooks/useSocket";
 // import { useSocket } from "../../../hooks/useSocket";
 
 const ChatInput = () => {
   // const {socket} = useSocket();
   const { conversationId } = useConversationId();
-  const [newMessage, setNewMessage] = useState<string>();
+  const { handleNewMessage } = useNewMessage();
+  const [message, setMessage] = useState<string>();
   const { token } = useAuth();
   // const { socket } = useSocket();
 
   const sendMessageToServer = async () => {
-    await fetch(sendMessage, {
+    const req = await fetch(sendMessage, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        message: newMessage,
+        message: message,
         conversationId,
       }),
     });
-    // const res = await req.json();
-    // socket?.on('newMessage')
+    const res = await req.json();
+    handleNewMessage(res);
+    // setResponse(res);
+    // socket?.on('message')
   };
 
   const handleOnChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setNewMessage(e.target.value);
+    setMessage(e.target.value);
   };
 
   const handleOnSubmit = (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // socket?.emit("newMessage", conversationId);
+    // socket?.emit("message", conversationId);
 
     if (conversationId) {
       sendMessageToServer();
     } else {
       console.log("no conversation id to send the message");
     }
-    setNewMessage("");
-    // console.log(newMessage);
+    setMessage("");
+    // console.log(message);
   };
   return (
     <form onSubmit={handleOnSubmit}>
       <input
-        value={newMessage}
+        value={message}
         type="text"
         placeholder="write your message"
         onChange={handleOnChange}

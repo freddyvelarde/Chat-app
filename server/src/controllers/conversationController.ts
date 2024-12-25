@@ -122,6 +122,15 @@ export const sendMessage = async (req: Request, res: Response) => {
       },
     });
 
+    const userWhoSent = await prisma.conversationMembers.findMany({
+      where: {
+        userId,
+        conversationId,
+      },
+      include: {
+        user: true,
+      },
+    });
     const member = await prisma.conversationMembers.findMany({
       where: {
         NOT: { userId },
@@ -132,27 +141,11 @@ export const sendMessage = async (req: Request, res: Response) => {
       },
     });
 
-    // const receiverSocketId = getChatSocketId(member[0]?.userId as string);
-    // console.log(
-    //   "receiverSocketId",
-    //   receiverSocketId,
-    //   "receiverId: ",
-    //   member[0]?.userId as string,
-    // );
-
-    // if (receiverSocketId) {
-    //   console.log(
-    //     `\t Member username: ${member[0].user.username} socketid: ${receiverSocketId}`,
-    //   );
-    //   io.to(receiverSocketId).emit("newMessage", newMessage);
-    // } else {
-    //   console.log(`User ${member[0]?.userId as string} is not online.`);
-    // }
     const receiverId: string = member[0]?.userId;
-    //
+    (newMessage as any)["sender"] = userWhoSent[0].user;
     notifyNewMessageToUser(receiverId, newMessage);
 
-    res.send({ newMessage });
+    res.send(newMessage);
   } catch (error) {
     res.send({
       message: "There was an error in conversationController.ts:sendMessage()",

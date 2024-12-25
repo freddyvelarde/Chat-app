@@ -1,9 +1,10 @@
 import { useEffect } from "react";
 import { useSocket } from "./useSocket";
+import useNewMessage from "./useNewMessage";
 
 const useListenMessages = () => {
   const { socketRef } = useSocket();
-  // const [onlineUsers, setOnlineUsers] = useState<string[]>();
+  const { handleNewMessage } = useNewMessage();
 
   useEffect(() => {
     if (!socketRef) {
@@ -14,6 +15,7 @@ const useListenMessages = () => {
 
     socketRef.current?.on("newMessage", (newMessage) => {
       console.log("Notification (new message): ", newMessage);
+      handleNewMessage(newMessage);
     });
 
     return () => {
