@@ -153,6 +153,59 @@ export const sendMessage = async (req: Request, res: Response) => {
   }
 };
 
+export const createConversation = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).id;
+    const { username } = req.params;
+
+    // verify user
+    const user = await prisma.user.findFirst({ where: { username } });
+    if (!user) {
+      res.send({ error: `user: '${username}' does not exist` });
+      return;
+    }
+    const conversationMembersByUser = await prisma.conversationMembers.findMany(
+      { where: { userId } },
+    );
+
+    let conversation: IConversation | null = null;
+
+    for (let i = 0; i < conversationMembersByUser.length; i++) {
+      let con = await prisma.conversationMembers.findFirst({
+        where: {
+          userId: user.id,
+          conversationId: conversationMembersByUser[i].conversationId,
+        },
+      });
+      if (con) {
+        conversation = await prisma.conversation.findFirst({
+          where: { id: con.conversationId },
+        });
+
+        break;
+      }
+    }
+    // if conversation is null then there's no a conversation.
+    if (conversation == null) {
+      console.log(`Creating conversation between: ${userId} and ${username}`);
+      conversation = await prisma.conversation.create({ data: {} });
+      console.log(`Creating members to this convesation room`);
+      await prisma.conversationMembers.createMany({
+        data: [
+          { conversationId: conversation.id, userId },
+          { conversationId: conversation.id, userId: user.id },
+        ],
+      });
+    }
+
+    res.send(conversation);
+  } catch (error) {
+    res.send({
+      message: "There was an error in conversationController.ts:sendMessage()",
+    });
+  }
+};
+
 export const sendMessageFirstMessage = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).id;
@@ -207,7 +260,7 @@ export const sendMessageFirstMessage = async (req: Request, res: Response) => {
       },
     });
 
-    res.send({ newMessage });
+    res.send(newMessage);
   } catch (error) {
     res.send({
       message: "There was an error in conversationController.ts:sendMessage()",

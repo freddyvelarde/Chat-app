@@ -6,3 +6,4 @@ export const allConversationsByUser = `${mainUrl}/api/conversation`;
 export const sendMessage = `${mainUrl}/api/conversation/send`;
 export const allUsers = `${mainUrl}/api/user`;
 export const conversation = `${mainUrl}/api/conversation`;
+export const createConversation = `${mainUrl}/api/conversation/create`;

@@ -1,11 +1,27 @@
 import { useEffect, useState } from "react";
-import { allUsers } from "../../../config/endpoints";
+import { allUsers, createConversation } from "../../../config/endpoints";
 import { IUser } from "../../../interfaces/user";
 import useAuth from "../../../hooks/useAuth";
+import useConversationId from "../../../hooks/useConversationId";
 
+interface CreateResponse {
+  id: string;
+}
 const NewChat = () => {
   const [users, setUsers] = useState<IUser[]>();
   const { token } = useAuth();
+
+  const { setConversationId } = useConversationId();
+  const createNewConversation = async (username: string) => {
+    const req = await fetch(`${createConversation}/${username}`, {
+      method: "GET",
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+    });
+    const res: CreateResponse = await req.json();
+    setConversationId(res.id);
+  };
 
   const fetchAllUsers = async () => {
     const req = await fetch(allUsers, {
@@ -27,7 +43,9 @@ const NewChat = () => {
       {users && users.length > 0 ? (
         users.map((user, index) => (
           <div key={index}>
-            <h2>{user.username}</h2>
+            <span onClick={() => createNewConversation(user.username)}>
+              {user.username}
+            </span>
           </div>
         ))
       ) : (
