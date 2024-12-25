@@ -1,5 +1,5 @@
-import app, { PORT } from "./server";
+import { PORT, httpServer } from "./server";
 
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`Server running on port: ${PORT}`);
 });

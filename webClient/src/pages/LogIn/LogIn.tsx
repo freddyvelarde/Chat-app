@@ -37,8 +37,9 @@ const LogIn = () => {
   };
 
   useEffect(() => {
-    if (response && response.isAuth && response.token) {
-      authUser(response.token);
+    if (response && response.isAuth && response.token && response.user) {
+      console.log(`User logedin: ${response}`);
+      authUser(response.token, response.user);
     }
   }, [response]);
 

@@ -1,0 +1,2 @@
+- [ ] The new message from the server it'll be stored into a new state (newMessages: conversationId, content, etc) and if i am in a conversation box then if the conversationId is the same with the current one, then append the message to the chat, otherwise just notify the user that has a new message, if it's possible notify who was user who has sent the message
+- [ ]

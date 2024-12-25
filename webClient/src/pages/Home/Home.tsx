@@ -1,47 +1,53 @@
-import { useEffect, useState } from "react";
-import { allConversationsByUser } from "../../config/endpoints";
 import useAuth from "../../hooks/useAuth";
-import { Link } from "react-router-dom";
-
-// Define an interface for your conversation type
-interface Conversation {
-  id: string;
-  // Add other properties your conversation has
-}
-
-function Home() {
-  const [response, setResponse] = useState<Conversation[]>();
-  const { token } = useAuth();
-
-  const getAllConversationByUser = async () => {
-    const req = await fetch(allConversationsByUser, {
-      method: "GET",
-      headers: {
-        authorization: `Bearer ${token}`,
-      },
-    });
-    const res = await req.json();
-    setResponse(res);
-  };
-
-  useEffect(() => {
-    getAllConversationByUser();
-  }, [token]); // Add token as dependency
+// import useConversationId from "../../hooks/useConversationId";
+import useListenMessages from "../../hooks/useListenMessages";
+import { useSocket } from "../../hooks/useSocket";
+// import { AdvancedAudioPlayer } from "./Audio";
+// import { useSocket } from "../../hooks/useSocket";
+import Chat from "./Chat/Chat";
+import ChatDashboard from "./ChatDashboard/ChatDashboard";
+const Home = () => {
+  const { clearAuthUser } = useAuth();
+  const { socketRef } = useSocket();
+  // const { conversationId } = useConversationId();
+  useListenMessages();
 
   return (
-    <>
-      <h1>All conversations</h1>
-      <button onClick={getAllConversationByUser}>get all conv</button>
-      {response?.map((elem) => (
-        <>
-          <Link key={elem.id} to={`/chat/${elem.id}`}>
-            {elem.id}
-          </Link>
-          <br />
-        </>
-      ))}
-    </>
+    <div>
+      <ChatDashboard />
+      <Chat />
+      <button onClick={clearAuthUser}>Log out</button>
+      <button
+        onClick={() => {
+          console.log(socketRef);
+        }}
+      >
+        print socket
+      </button>
+    </div>
   );
-}
+};
 
 export default Home;
+// {selectedConversation ? (
+//   <div>
+//     <div>
+//       {messages.map((message) => (
+//         <div key={message.id}>
+//           <p>{message.sender.username}</p>
+//           <p>{message.content}</p>
+//         </div>
+//       ))}
+//     </div>
+//
+//     <form onSubmit={sendMessageHandle}>
+//       <input
+//         type="text"
+//         value={newMessage}
+//         onChange={(e) => setNewMessage(e.target.value)}
+//         placeholder="Type a message..."
+//       />
+//       <button type="submit">Send</button>
+//     </form>
+//   </div>
+// ) : (

@@ -1,11 +1,13 @@
 import { Request, Response } from "express";
 import prisma from "../db/prisma";
+import { notifyNewMessageToUser } from "../socket/socket";
 
 export const getAllConversations = async (req: Request, res: Response) => {
   const userId = (req as any).id;
 
   if (!userId) {
-    return res.status(400).send({ message: "User ID is required" });
+    res.status(400).send({ message: "User ID is required" });
+    return;
   }
 
   try {
@@ -21,12 +23,11 @@ export const getAllConversations = async (req: Request, res: Response) => {
       where: { id: { in: conversationIds } },
     });
 
-    return res.send(conversations); // Ensure no extra wrapping
+    res.send(conversations);
   } catch (error) {
-    return res.status(500).send({ message: "Internal Server Error" });
+    res.status(500).send({ message: "Internal Server Error" });
   }
 };
-
 /**
  * @param conversationId to find all the messages.
  * */
@@ -44,6 +45,7 @@ export const getAllMessagesByConversationId = async (
     const messages = await prisma.message.findMany({
       where: { conversationId },
       orderBy: { sentAt: "asc" },
+      // take: 20,
       include: {
         sender: true,
       },
@@ -78,50 +80,27 @@ export const getAllConversationsByUser = async (
       (member) => member.conversationId,
     );
 
-    const conversations = await prisma.conversation.findMany({
-      where: { id: { in: conversationIds } },
+    const conversations = await prisma.conversationMembers.findMany({
+      where: {
+        AND: {
+          conversationId: { in: conversationIds },
+          NOT: {
+            userId,
+          },
+        },
+      },
+      include: {
+        user: true,
+      },
     });
 
-    // Flatten any nested arrays in the result
-    const flattenedConversations = conversations.flat();
-
-    res.send(flattenedConversations);
+    // console.log(conversations);
+    res.send(conversations);
   } catch (error) {
     res.status(500).send({ message: "Internal Server Error" });
   }
 };
 
-// export const getAllConversationsByUser = async (
-//   req: Request,
-//   res: Response,
-// ) => {
-//   try {
-//     const userId = (req as any).id;
-//
-//     const userConversations = await prisma.conversationMembers.findMany({
-//       where: { userId },
-//     });
-//
-//     let conversations: any = [];
-//
-//     for (let i = 0; i < userConversations.length; i++) {
-//       const con = await prisma.conversation.findMany({
-//         where: {
-//           id: userConversations[i].conversationId,
-//         },
-//       });
-//       conversations.push(con);
-//     }
-//
-//     res.send(conversations);
-//   } catch (error) {
-//     res.send({
-//       message:
-//         "There was an error in conversationController.ts:getAllConversationsByUser()",
-//       error,
-//     });
-//   }
-// };
 interface IConversation {
   id: string;
   createdAt: Date;
@@ -139,7 +118,84 @@ export const sendMessage = async (req: Request, res: Response) => {
       },
     });
 
-    res.send({ newMessage });
+    const userWhoSent = await prisma.conversationMembers.findMany({
+      where: {
+        userId,
+        conversationId,
+      },
+      include: {
+        user: true,
+      },
+    });
+    const member = await prisma.conversationMembers.findMany({
+      where: {
+        NOT: { userId },
+        conversationId,
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    const receiverId: string = member[0]?.userId;
+    (newMessage as any)["sender"] = userWhoSent[0].user;
+    notifyNewMessageToUser(receiverId, newMessage);
+
+    res.send(newMessage);
+  } catch (error) {
+    res.send({
+      message: "There was an error in conversationController.ts:sendMessage()",
+    });
+  }
+};
+
+export const createConversation = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).id;
+    const { username } = req.params;
+
+    // verify user
+    const user = await prisma.user.findFirst({ where: { username } });
+    if (!user) {
+      res.send({ error: `user: '${username}' does not exist` });
+      return;
+    }
+
+    const conversationMembersByUser = await prisma.conversationMembers.findMany(
+      { where: { userId } },
+    );
+
+    let conversation: IConversation | null = null;
+
+    for (let i = 0; i < conversationMembersByUser.length; i++) {
+      let con = await prisma.conversationMembers.findFirst({
+        where: {
+          userId: user.id,
+          conversationId: conversationMembersByUser[i].conversationId,
+        },
+      });
+      if (con) {
+        conversation = await prisma.conversation.findFirst({
+          where: { id: con.conversationId },
+        });
+
+        break;
+      }
+    }
+    // if conversation is null then there's no a conversation.
+    if (conversation == null) {
+      console.log(`Creating conversation between: ${userId} and ${username}`);
+      conversation = await prisma.conversation.create({ data: {} });
+      console.log(`Creating members to this convesation room`);
+      await prisma.conversationMembers.createMany({
+        data: [
+          { conversationId: conversation.id, userId },
+          { conversationId: conversation.id, userId: user.id },
+        ],
+      });
+    }
+
+    res.send(conversation);
   } catch (error) {
     res.send({
       message: "There was an error in conversationController.ts:sendMessage()",
@@ -201,10 +257,34 @@ export const sendMessageFirstMessage = async (req: Request, res: Response) => {
       },
     });
 
-    res.send({ newMessage });
+    res.send(newMessage);
   } catch (error) {
     res.send({
       message: "There was an error in conversationController.ts:sendMessage()",
     });
   }
+};
+
+export const deleteConversationBewteenUsers = async (
+  req: Request,
+  res: Response,
+) => {
+  const { conversationId } = req.params;
+  await prisma.message.deleteMany({
+    where: {
+      conversationId,
+    },
+  });
+  await prisma.conversationMembers.deleteMany({
+    where: {
+      id: conversationId,
+    },
+  });
+  await prisma.conversation.deleteMany({
+    where: {
+      id: conversationId,
+    },
+  });
+
+  res.send({ message: `All messages from: ${conversationId} was deleted` });
 };
