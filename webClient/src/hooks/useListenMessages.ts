@@ -2,22 +2,24 @@ import { useEffect } from "react";
 import { useSocket } from "./useSocket";
 
 const useListenMessages = () => {
-  const { socket } = useSocket();
+  const { socketRef } = useSocket();
+  // const [onlineUsers, setOnlineUsers] = useState<string[]>();
 
   useEffect(() => {
-    if (!socket) return;
-
+    if (!socketRef) {
+      console.log("socket error");
+      return;
+    }
     console.log("Listening for new messages...");
-    socket.on("newMessage", (newMessage) => {
-      newMessage.shouldShake = true;
+
+    socketRef.current?.on("newMessage", (newMessage) => {
       console.log("Notification (new message): ", newMessage);
     });
 
-    // Cleanup listener on unmount or socket change
     return () => {
-      socket.off("newMessage");
+      socketRef.current?.off("newMessage");
     };
-  }, [socket]); // Dependency on socket, but it should now be stable
+  }, [socketRef]);
 };
 
 export default useListenMessages;

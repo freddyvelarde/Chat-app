@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import prisma from "../db/prisma";
-import { getChatSocketId, io } from "../socket/socket";
+import { notifyNewMessageToUser } from "../socket/socket";
 
 export const getAllConversations = async (req: Request, res: Response) => {
   const userId = (req as any).id;
@@ -79,14 +79,27 @@ export const getAllConversationsByUser = async (
       (member) => member.conversationId,
     );
 
-    const conversations = await prisma.conversation.findMany({
-      where: { id: { in: conversationIds } },
+    // const conversations = await prisma.conversation.findMany({
+    //   where: { id: { in: conversationIds } },
+    // });
+
+    // const flattenedConversations = conversations.flat();
+    const conversations = await prisma.conversationMembers.findMany({
+      where: {
+        AND: {
+          conversationId: { in: conversationIds },
+          NOT: {
+            userId,
+          },
+        },
+      },
+      include: {
+        user: true,
+      },
     });
 
-    // Flatten any nested arrays in the result
-    const flattenedConversations = conversations.flat();
-
-    res.send(flattenedConversations);
+    // console.log(conversations);
+    res.send(conversations);
   } catch (error) {
     res.status(500).send({ message: "Internal Server Error" });
   }
@@ -119,7 +132,7 @@ export const sendMessage = async (req: Request, res: Response) => {
       },
     });
 
-    const receiverSocketId = getChatSocketId(member[0]?.userId as string);
+    // const receiverSocketId = getChatSocketId(member[0]?.userId as string);
     // console.log(
     //   "receiverSocketId",
     //   receiverSocketId,
@@ -127,14 +140,17 @@ export const sendMessage = async (req: Request, res: Response) => {
     //   member[0]?.userId as string,
     // );
 
-    if (receiverSocketId) {
-      console.log(
-        `\t Member username: ${member[0].user.username} socketid: ${receiverSocketId}`,
-      );
-      io.to(receiverSocketId).emit("newMessage", newMessage);
-    } else {
-      console.log(`User ${member[0]?.userId as string} is not online.`);
-    }
+    // if (receiverSocketId) {
+    //   console.log(
+    //     `\t Member username: ${member[0].user.username} socketid: ${receiverSocketId}`,
+    //   );
+    //   io.to(receiverSocketId).emit("newMessage", newMessage);
+    // } else {
+    //   console.log(`User ${member[0]?.userId as string} is not online.`);
+    // }
+    const receiverId: string = member[0]?.userId;
+    //
+    notifyNewMessageToUser(receiverId, newMessage);
 
     res.send({ newMessage });
   } catch (error) {

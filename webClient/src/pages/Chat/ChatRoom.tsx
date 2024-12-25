@@ -9,7 +9,7 @@ import {
 } from "react";
 import useAuth from "../../hooks/useAuth";
 import { useSocket } from "../../hooks/useSocket";
-import Messages from "./Messages";
+import Messages from "../Home/Chat/Messages";
 // import useListenMessages from "../../hooks/useListenMessages";
 
 interface IMessage {

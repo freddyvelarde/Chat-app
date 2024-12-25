@@ -6,11 +6,11 @@ import { Provider } from "react-redux";
 import { store } from "./redux/store";
 import useRouter from "./routers";
 // import { MODE } from "./config/env_variable";
-import useListenMessages from "./hooks/useListenMessages";
+// import useListenMessages from "./hooks/useListenMessages";
 
 const App = () => {
   const { router } = useRouter();
-  useListenMessages();
+  // useListenMessages();
 
   return <RouterProvider router={router} />;
 };
