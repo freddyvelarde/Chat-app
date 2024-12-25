@@ -1,34 +1,38 @@
-import { useEffect } from "react";
-import { io } from "socket.io-client";
+import { useState, useEffect, useRef } from "react";
+import io, { Socket } from "socket.io-client";
+import useAuth from "./useAuth";
 
-// const socket = io("http://localhost:3001"); // Replace with your server's URL
+// const socketURL =
+//   import.meta.env.MODE === "development" ? "http://localhost:3001" : "/";
 
-const socket = io("http://localhost:3001", {
-  reconnection: true,
-  reconnectionAttempts: 5,
-  reconnectionDelay: 1000,
-});
 export const useSocket = () => {
+  const socketRef = useRef<Socket | null>(null);
+  const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
+  const { user } = useAuth();
+
   useEffect(() => {
-    socket.on("connect", () => {
-      console.log("Connected to server:", socket.id);
-    });
+    if (user) {
+      // Initialize the socket connection
+      const socket = io("http://localhost:3001", {
+        query: {
+          userId: user.id, // Send userId as part of the query
+        },
+      });
 
-    socket.on("messageReceived", (data) => {
-      console.log("Message received:", data);
-      // console.log("React Log: ", { message, conversationId });
-      // Update your state or UI with the new message
-    });
+      socketRef.current = socket;
 
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
+      // Listen for online users
+      socket.on("getOnlineUsers", (users: string[]) => {
+        setOnlineUsers(users);
+      });
 
-  const sendMessageRealTime = (message: string, conversationId: string) => {
-    console.log("React Log: ", { message, conversationId });
-    socket.emit("newMessage", { message, conversationId });
-  };
+      // Clean up the socket connection when the component unmounts
+      return () => {
+        socket.close();
+        socketRef.current = null;
+      };
+    }
+  }, [user]);
 
-  return { sendMessageRealTime };
+  return { socket: socketRef.current, onlineUsers };
 };

@@ -1,7 +1,8 @@
 import express, { Application } from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
-// import { _URL } from "../config/environment_variables";
+import { BASE_URL } from "../config/environment_variables";
+// import { IMessage } from "../interfaces/model.db.ts";
 
 export const app: Application = express();
 
@@ -9,24 +10,53 @@ export const httpServer = createServer(app);
 
 export const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: BASE_URL || "http://localhost:5173",
     methods: ["GET", "POST"],
   },
 });
 
+let onlineUsers: { [key: string]: string } = {}; // {userId: socketId}
+
+export const getChatSocketId = (userId: string) => {
+  return onlineUsers[userId];
+};
+
 io.on("connection", (socket) => {
-  console.log(`User connected: ${socket.id}`);
-  socket.on("connect", () => {
-    console.log("Connected to WebSocket server:", socket.id);
-  });
+  // clients subscribes to socket
 
-  socket.on("newMessage", (data) => {
-    console.log("New message", data);
+  const userId = socket.handshake.query.userId as string;
+  console.log(`User ${userId} connected with socketId: ${socket.id}`);
+  console.log(onlineUsers);
 
-    io.emit("messageReceived", data);
-  });
+  if (userId) onlineUsers[userId] = socket.id;
 
-  socket.on("disconected", () => {
-    console.log(`User disconected: ${socket.id}`);
+  // socket.on("newMessage", (data) => {
+  //   console.log("New message received:", data);
+  //
+  //   // io.emit("messageReceived", data);
+  // });
+
+  // socket.on("newMessage", (newMessage) => {
+  //   console.log("Notification (new message): ", newMessage);
+  // });
+
+  io.emit("getOnlineUsers", Object.keys(onlineUsers));
+
+  socket.on("disconnect", () => {
+    // console.log("user disconnected", socket.id);
+    delete onlineUsers[userId];
+    io.emit("getOnlineUsers", Object.keys(onlineUsers));
   });
 });
+
+// export const notifyNewMessageToUser = (
+//   userId: string,
+//   newMessage: IMessage,
+// ) => {
+//   const receiverSocketId = getChatSocketId(userId);
+//   if (receiverSocketId) {
+//     io.to(receiverSocketId).emit("newMessage", newMessage);
+//   } else {
+//     console.log(`User with ${userId} is not online.`);
+//   }
+// };

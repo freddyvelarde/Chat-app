@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+// import { useParams } from "react-router-dom";
 import { allConversationsByUser, sendMessage } from "../../config/endpoints";
 import {
   ChangeEvent,
@@ -9,6 +9,8 @@ import {
 } from "react";
 import useAuth from "../../hooks/useAuth";
 import { useSocket } from "../../hooks/useSocket";
+import Messages from "./Messages";
+// import useListenMessages from "../../hooks/useListenMessages";
 
 interface IMessage {
   content: string;
@@ -32,12 +34,16 @@ interface INewMessage {
   };
 }
 
-const ChatRoom = () => {
-  const { chatId } = useParams();
+interface IChatRoomProps {
+  chatId: string;
+}
+const ChatRoom = ({ chatId }: IChatRoomProps) => {
+  // useListenMessages();
+  // const { chatId } = useParams();
   const { token } = useAuth();
   const [response, setResponse] = useState<IMessage[]>([]);
   const [message, setMessage] = useState<string>("");
-  const { sendMessageRealTime } = useSocket();
+  const { socket } = useSocket();
 
   const getConversation = async () => {
     const req = await fetch(`${allConversationsByUser}/${chatId}`, {
@@ -48,7 +54,7 @@ const ChatRoom = () => {
     });
     const res = await req.json();
     setResponse(res);
-    console.log(response);
+    // console.log(response);
   };
   const handleSendMessage = async () => {
     const req = await fetch(sendMessage, {
@@ -80,7 +86,8 @@ const ChatRoom = () => {
     e.preventDefault();
 
     handleSendMessage();
-    sendMessageRealTime(message, chatId as string);
+    socket?.emit(message, chatId);
+    // sendMessageRealTime(message, chatId as string);
     setMessage("");
     console.log(response);
   };
@@ -88,12 +95,8 @@ const ChatRoom = () => {
   return (
     <>
       <button onClick={getConversation}>All Conversation</button>
-      {response?.map((message) => (
-        <div key={message.id}>
-          <li> ------- {message.sender.username}</li>
-          <p>{message.content}</p>
-        </div>
-      ))}
+      <Messages response={response} />
+
       <form onSubmit={handleOnSubmit}>
         <input
           type="text"

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import prisma from "../db/prisma";
-import { io } from "../socket/socket";
+import { getChatSocketId, io } from "../socket/socket";
 
 export const getAllConversations = async (req: Request, res: Response) => {
   const userId = (req as any).id;
@@ -28,7 +28,6 @@ export const getAllConversations = async (req: Request, res: Response) => {
     res.status(500).send({ message: "Internal Server Error" });
   }
 };
-
 /**
  * @param conversationId to find all the messages.
  * */
@@ -109,8 +108,33 @@ export const sendMessage = async (req: Request, res: Response) => {
         senderId: userId,
       },
     });
-    // io.emit("messageReceived", newMessage);
-    io.emit("messageReceived", { newMessage, conversationId });
+
+    const member = await prisma.conversationMembers.findMany({
+      where: {
+        NOT: { userId },
+        conversationId,
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    const receiverSocketId = getChatSocketId(member[0]?.userId as string);
+    // console.log(
+    //   "receiverSocketId",
+    //   receiverSocketId,
+    //   "receiverId: ",
+    //   member[0]?.userId as string,
+    // );
+
+    if (receiverSocketId) {
+      console.log(
+        `\t Member username: ${member[0].user.username} socketid: ${receiverSocketId}`,
+      );
+      io.to(receiverSocketId).emit("newMessage", newMessage);
+    } else {
+      console.log(`User ${member[0]?.userId as string} is not online.`);
+    }
 
     res.send({ newMessage });
   } catch (error) {
