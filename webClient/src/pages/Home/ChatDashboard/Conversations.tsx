@@ -7,6 +7,7 @@ import useAuth from "../../../hooks/useAuth";
 import { IUser } from "../../../interfaces/user";
 import useConversationId from "../../../hooks/useConversationId";
 import { ConversationsStyles, TrashBtn } from "./styles/ConversationsStyles";
+import useListenMessages from "../../../hooks/useListenMessages";
 interface Conversation {
   id: string;
   createdAt?: Date;
@@ -18,6 +19,13 @@ const Conversations = () => {
   const { token } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>();
   const { setConversationId } = useConversationId();
+  const { usersOnline } = useListenMessages();
+
+  const checkIfUserIsOnline = (userId: string): boolean => {
+    const u = usersOnline.find((el) => el === userId);
+
+    return u !== undefined;
+  };
 
   const fetchDeleteConversation = async (conversationId: string) => {
     await fetch(`${deleteConversation}/${conversationId}`, {
@@ -63,7 +71,10 @@ const Conversations = () => {
                 setConversationId(conv.conversationId);
               }}
             >
-              {conv.user?.username}
+              {conv.user?.username}{" "}
+              {checkIfUserIsOnline(conv.user?.id as string) ? (
+                <div className="online"></div>
+              ) : null}
             </li>
             <TrashBtn
               onClick={() => fetchDeleteConversation(conv.conversationId)}

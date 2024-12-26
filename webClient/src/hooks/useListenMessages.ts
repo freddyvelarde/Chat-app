@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSocket } from "./useSocket";
 import useNewMessage from "./useNewMessage";
 import audio from "../assets/music.wav";
@@ -6,6 +6,8 @@ import audio from "../assets/music.wav";
 const useListenMessages = () => {
   const { socketRef } = useSocket();
   const { handleNewMessage } = useNewMessage();
+  const [usersOnline, setUsersOnline] = useState<string[]>([]);
+
   const playAudio = async () => {
     const sound = new Audio(audio);
     sound.play().catch(() => {
@@ -25,11 +27,18 @@ const useListenMessages = () => {
 
       playAudio();
     });
+    socketRef.current?.on("getOnlineUsers", (users: string[]) => {
+      // console.log("users online", users);
+
+      setUsersOnline(users);
+      // console.log(usersOnline);
+    });
 
     return () => {
       socketRef.current?.off("newMessage");
     };
   }, [socketRef]);
+  return { usersOnline };
 };
 
 export default useListenMessages;
