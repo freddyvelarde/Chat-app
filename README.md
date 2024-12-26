@@ -19,3 +19,32 @@ this proyect is not completed
 - [ ] REACT: Enhace the UI for the login and sign up
 
 - [ ] The code is a mess, needs to be refactored.
+
+## Run the project
+
+To run the project you need a DB (postgres)
+
+using docker:
+
+```docker
+version: "3.8"
+
+services:
+  db:
+    image: postgres:17.2-alpine3.21
+    container_name: postgres_container
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: todo_app
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_db_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_db_data:
+
+```
+
+And fill the `.env` file in the `./server` directory, notice that there's a `run_app` in the project, that's to run the server, the client and docker with postgres
