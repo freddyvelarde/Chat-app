@@ -1,20 +1,15 @@
-import useConversationId from "../../../hooks/useConversationId";
 import ChatInput from "./ChatInput";
 import Messages from "./Messages";
+import { ChatStyles } from "./styles/ChatStyles";
 
 const Chat = () => {
-  const { conversationId } = useConversationId();
-
   return (
-    <div>
+    <ChatStyles>
       <hr />
-      <span>Chat with id: {conversationId}</span>
       <Messages />
-
       <ChatInput />
-
       <hr />
-    </div>
+    </ChatStyles>
   );
 };
 export default Chat;

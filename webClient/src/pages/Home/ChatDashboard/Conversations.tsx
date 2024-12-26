@@ -6,6 +6,7 @@ import {
 import useAuth from "../../../hooks/useAuth";
 import { IUser } from "../../../interfaces/user";
 import useConversationId from "../../../hooks/useConversationId";
+import { ConversationsStyles, TrashBtn } from "./styles/ConversationsStyles";
 interface Conversation {
   id: string;
   createdAt?: Date;
@@ -52,35 +53,29 @@ const Conversations = () => {
   }, [token]);
 
   return (
-    <>
-      <div>
-        <button onClick={() => console.log(conversations)}>
-          {" "}
-          get all conv
-        </button>
-        {conversations && conversations?.length > 0 ? (
-          conversations?.map((conv, index) => (
-            <div key={index}>
-              <hr />
-              <li
-                onClick={() => {
-                  setConversationId(conv.conversationId);
-                }}
-              >
-                {conv.user?.username}
-              </li>
-              <button
-                onClick={() => fetchDeleteConversation(conv.conversationId)}
-              >
-                delete conversation
-              </button>
-            </div>
-          ))
-        ) : (
-          <span>No conversation yet</span>
-        )}
-      </div>
-    </>
+    <ConversationsStyles>
+      {conversations && conversations?.length > 0 ? (
+        conversations?.map((conv, index) => (
+          <div className="conversation" key={index}>
+            <hr />
+            <li
+              onClick={() => {
+                setConversationId(conv.conversationId);
+              }}
+            >
+              {conv.user?.username}
+            </li>
+            <TrashBtn
+              onClick={() => fetchDeleteConversation(conv.conversationId)}
+            >
+              <span>&#128465;</span>
+            </TrashBtn>
+          </div>
+        ))
+      ) : (
+        <span>No conversation yet</span>
+      )}
+    </ConversationsStyles>
   );
 };
 export default Conversations;

@@ -1,18 +1,22 @@
 // import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "./index.css";
+// import "./index.css";
 import { RouterProvider } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./redux/store";
 import useRouter from "./routers";
-// import { MODE } from "./config/env_variable";
-// import useListenMessages from "./hooks/useListenMessages";
+import { ThemeProvider } from "styled-components";
+import { darkColors } from "./styles/colors";
+import GlobalStyle from "./styles/GlobalStyles";
 
 const App = () => {
   const { router } = useRouter();
-  // useListenMessages();
-
-  return <RouterProvider router={router} />;
+  return (
+    <ThemeProvider theme={darkColors}>
+      <GlobalStyle />
+      <RouterProvider router={router} />
+    </ThemeProvider>
+  );
 };
 
 // if (MODE == "development") {

@@ -1,8 +1,14 @@
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, SyntheticEvent, useState } from "react";
 import { createConversation, searchUser } from "../../../config/endpoints";
 import { IUser } from "../../../interfaces/user";
 import useAuth from "../../../hooks/useAuth";
 import useConversationId from "../../../hooks/useConversationId";
+import {
+  CloseBtn,
+  InputStyles,
+  NewChatStyles,
+  UsersCard,
+} from "./styles/NewChatStyles";
 
 interface CreateResponse {
   id: string;
@@ -22,6 +28,10 @@ const NewChat = () => {
     const res: CreateResponse = await req.json();
     setConversationId(res.id);
   };
+  const close = () => {
+    setUsers([]);
+    setQuery("");
+  };
 
   const [query, setQuery] = useState<string>("");
   const handleOnChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -39,16 +49,17 @@ const NewChat = () => {
     const res = await req.json();
     setUsers(res);
   };
+  const handlerOnSubmit = (e: SyntheticEvent<HTMLFormElement>) =>
+    e.preventDefault();
+
   // useEffect(() => {
   //   fetchAllUsers();
   // }, [token]);
 
   return (
-    <>
-      <h1>New chat +</h1>
-
-      <form>
-        <input
+    <NewChatStyles>
+      <form onSubmit={handlerOnSubmit}>
+        <InputStyles
           value={query}
           type="text"
           placeholder="search user"
@@ -57,17 +68,23 @@ const NewChat = () => {
       </form>
 
       {users && users.length > 0 ? (
-        users.map((user, index) => (
-          <div key={index}>
-            <span onClick={() => createNewConversation(user.username)}>
-              {user.username}
-            </span>
-          </div>
-        ))
-      ) : (
-        <span>No users yet</span>
-      )}
-    </>
+        <UsersCard>
+          <CloseBtn onClick={close}>X</CloseBtn>
+          {users.map((user, index) => (
+            <div key={index} className="card">
+              <span
+                onClick={() => {
+                  createNewConversation(user.username);
+                  close();
+                }}
+              >
+                @{user.username} <span>&#8690;</span>
+              </span>
+            </div>
+          ))}
+        </UsersCard>
+      ) : null}
+    </NewChatStyles>
   );
 };
 export default NewChat;
