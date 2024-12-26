@@ -1,18 +1,62 @@
 import { ChangeEvent, SyntheticEvent, useState } from "react";
+import styled from "styled-components";
 import { sendMessage } from "../../../config/endpoints";
 import useAuth from "../../../hooks/useAuth";
 import useConversationId from "../../../hooks/useConversationId";
 import useNewMessage from "../../../hooks/useNewMessage";
-// import { useSocket } from "../../../hooks/useSocket";
-// import { useSocket } from "../../../hooks/useSocket";
+
+const ChatInputContainer = styled.form`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background-color: ${(props) => props.theme.bg};
+  border-top: 1px solid ${(props) => props.theme.mainText};
+`;
+
+const Input = styled.input`
+  flex: 1;
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid ${(props) => props.theme.border};
+  border-radius: 5px;
+  color: ${(props) => props.theme.mainText};
+  background-color: ${(props) => props.theme.fg};
+  color: ${(props) => props.theme.text};
+  outline: none;
+
+  &:focus {
+    border-color: ${(props) => props.theme.primary};
+    box-shadow: 0 0 5px ${(props) => props.theme.primary};
+  }
+`;
+
+const Button = styled.button`
+  padding: 10px 15px;
+  font-size: 1rem;
+  font-weight: bold;
+  color: ${(props) => props.theme.buttonText};
+  background-color: ${(props) => props.theme.primary};
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: ${(props) => props.theme.primaryHover};
+  }
+
+  &:disabled {
+    background-color: ${(props) => props.theme.disabled};
+    cursor: not-allowed;
+  }
+`;
 
 const ChatInput = () => {
-  // const {socket} = useSocket();
   const { conversationId } = useConversationId();
   const { handleNewMessage } = useNewMessage();
-  const [message, setMessage] = useState<string>();
+  const [message, setMessage] = useState<string>("");
   const { token } = useAuth();
-  // const { socket } = useSocket();
 
   const sendMessageToServer = async () => {
     const req = await fetch(sendMessage, {
@@ -22,14 +66,12 @@ const ChatInput = () => {
         authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        message: message,
+        message,
         conversationId,
       }),
     });
     const res = await req.json();
     handleNewMessage(res);
-    // setResponse(res);
-    // socket?.on('message')
   };
 
   const handleOnChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -39,26 +81,25 @@ const ChatInput = () => {
   const handleOnSubmit = (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // socket?.emit("message", conversationId);
-
-    if (conversationId) {
+    if (conversationId && message.trim()) {
       sendMessageToServer();
+      setMessage("");
     } else {
-      console.log("no conversation id to send the message");
+      console.log("No conversation ID or message to send");
     }
-    setMessage("");
-    // console.log(message);
   };
+
   return (
-    <form onSubmit={handleOnSubmit}>
-      <input
+    <ChatInputContainer onSubmit={handleOnSubmit}>
+      <Input
         value={message}
         type="text"
-        placeholder="write your message"
+        placeholder="Write your message..."
         onChange={handleOnChange}
       />
-      <button>send</button>
-    </form>
+      <Button disabled={!message.trim()}>Send</Button>
+    </ChatInputContainer>
   );
 };
+
 export default ChatInput;
